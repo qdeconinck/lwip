@@ -706,15 +706,23 @@ tcp_bind(struct tcp_pcb *pcb, const ip_addr_t *ipaddr, u16_t port)
   }
 #endif /* LWIP_IPV6 && LWIP_IPV6_SCOPES */
 
+#ifndef TCP_TRANSPARENT
   if (port == 0) {
     port = tcp_new_port();
     if (port == 0) {
       return ERR_BUF;
     }
   } else {
+#endif
     /* Check if the address already is in use (on all lists) */
     for (i = 0; i < max_pcb_list; i++) {
       for (cpcb = *tcp_pcb_lists[i]; cpcb != NULL; cpcb = cpcb->next) {
+	if (cpcb->local_port == 0) {
+          if ((ip_addr_isany(&cpcb->local_ip) &&
+              ip_addr_isany(ipaddr)) ||
+              ip_addr_cmp(&cpcb->local_ip, ipaddr))
+		return ERR_USE;
+        }
         if (cpcb->local_port == port) {
 #if SO_REUSE
           /* Omit checking for the same port if both pcbs have REUSEADDR set.
@@ -735,7 +743,9 @@ tcp_bind(struct tcp_pcb *pcb, const ip_addr_t *ipaddr, u16_t port)
         }
       }
     }
+#ifndef TCP_TRANSPARENT
   }
+#endif
 
   if (!ip_addr_isany(ipaddr)
 #if LWIP_IPV4 && LWIP_IPV6

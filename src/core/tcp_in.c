@@ -92,7 +92,7 @@ static err_t tcp_process(struct tcp_pcb *pcb);
 static void tcp_receive(struct tcp_pcb *pcb);
 static void tcp_parseopt(struct tcp_pcb *pcb);
 
-static void tcp_listen_input(struct tcp_pcb_listen *pcb);
+static void tcp_listen_input(struct tcp_pcb_listen *pcb, u16_t port);
 static void tcp_timewait_input(struct tcp_pcb *pcb);
 
 static int tcp_input_delayed_close(struct tcp_pcb *pcb);
@@ -323,6 +323,11 @@ tcp_input(struct pbuf *p, struct netif *inp)
         continue;
       }
 
+#if TCP_TRANSPARENT
+      if (lpcb->local_port == 0)
+        break;
+#endif
+
       if (lpcb->local_port == tcphdr->dest) {
         if (IP_IS_ANY_TYPE_VAL(lpcb->local_ip)) {
           /* found an ANY TYPE (IPv4/IPv6) match */
@@ -377,7 +382,11 @@ tcp_input(struct pbuf *p, struct netif *inp)
                                      tcphdr_opt1len, tcphdr_opt2, p) == ERR_OK)
 #endif
       {
-        tcp_listen_input(lpcb);
+#if TCP_TRANSPARENT
+        tcp_listen_input(lpcb, tcphdr->dest);
+#else
+        tcp_listen_input(lpcb, lpcb->local_port);
+#endif
       }
       pbuf_free(p);
       return;
@@ -627,7 +636,7 @@ tcp_input_delayed_close(struct tcp_pcb *pcb)
  *       involved is passed as a parameter to this function
  */
 static void
-tcp_listen_input(struct tcp_pcb_listen *pcb)
+tcp_listen_input(struct tcp_pcb_listen *pcb, u16_t local_port)
 {
   struct tcp_pcb *npcb;
   u32_t iss;
@@ -675,7 +684,7 @@ tcp_listen_input(struct tcp_pcb_listen *pcb)
     /* Set up the new PCB. */
     ip_addr_copy(npcb->local_ip, *ip_current_dest_addr());
     ip_addr_copy(npcb->remote_ip, *ip_current_src_addr());
-    npcb->local_port = pcb->local_port;
+    npcb->local_port = local_port;
     npcb->remote_port = tcphdr->src;
     npcb->state = SYN_RCVD;
     npcb->rcv_nxt = seqno + 1;
