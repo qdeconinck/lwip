@@ -690,8 +690,13 @@ netif_found:
       ip6_forward(p, ip6hdr, inp);
     }
 #endif /* LWIP_IPV6_FORWARD */
+#if IP_TRANSPARENT
+    netif = inp;
+    LWIP_DEBUGF(IP6_DEBUG | LWIP_DBG_TRACE, ("ip6_input: transparent mode enabled, this packet is now for us.\n"));
+#else
     pbuf_free(p);
     goto ip6_input_cleanup;
+#endif
   }
 
   /* current netif pointer. */

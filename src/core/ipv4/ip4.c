@@ -625,6 +625,10 @@ ip4_input(struct pbuf *p, struct netif *inp)
       ip4_forward(p, (struct ip_hdr *)p->payload, inp);
     } else
 #endif /* IP_FORWARD */
+#if IP_TRANSPARENT
+    netif = inp;
+    LWIP_DEBUGF(IP_DEBUG | LWIP_DBG_TRACE, ("ip4_input: transparent mode enabled, this packet is now for us.\n"));
+#else
     {
       IP_STATS_INC(ip.drop);
       MIB2_STATS_INC(mib2.ipinaddrerrors);
@@ -632,6 +636,7 @@ ip4_input(struct pbuf *p, struct netif *inp)
     }
     pbuf_free(p);
     return ERR_OK;
+#endif
   }
   /* packet consists of multiple fragments? */
   if ((IPH_OFFSET(iphdr) & PP_HTONS(IP_OFFMASK | IP_MF)) != 0) {
