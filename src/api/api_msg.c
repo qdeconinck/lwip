@@ -632,6 +632,9 @@ pcb_new(struct api_msg *msg)
           msg->conn->pcb.raw->chksum_offset = 2;
         }
 #endif /* LWIP_IPV6 */
+        if (NETCONNTYPE_ISRAW_HDRINCL(msg->conn->type)) {
+          msg->conn->pcb.raw->flags |= RAW_FLAGS_HDRINCL;
+        }
         raw_recv(msg->conn->pcb.raw, recv_raw, msg->conn);
       }
       break;

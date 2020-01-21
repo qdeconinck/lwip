@@ -101,10 +101,12 @@ extern "C" {
 #define NETCONNTYPE_ISIPV6(t)        (((t)&NETCONN_TYPE_IPV6) != 0)
 #define NETCONNTYPE_ISUDPLITE(t)     (((t)&0xF3) == NETCONN_UDPLITE)
 #define NETCONNTYPE_ISUDPNOCHKSUM(t) (((t)&0xF3) == NETCONN_UDPNOCHKSUM)
+#define NETCONNTYPE_ISRAW_HDRINCL(t) (((t)&0xF3) == NETCONN_RAW_HDRINCL)
 #else /* LWIP_IPV6 */
 #define NETCONNTYPE_ISIPV6(t)        (0)
 #define NETCONNTYPE_ISUDPLITE(t)     ((t) == NETCONN_UDPLITE)
 #define NETCONNTYPE_ISUDPNOCHKSUM(t) ((t) == NETCONN_UDPNOCHKSUM)
+#define NETCONNTYPE_ISRAW_HDRINCL(t) ((t) == NETCONN_RAW_HDRINCL)
 #endif /* LWIP_IPV6 */
 
 /** @ingroup netconn_common
@@ -135,10 +137,12 @@ enum netconn_type {
 #endif /* LWIP_IPV6 */
 
   /** Raw connection IPv4 */
-  NETCONN_RAW         = 0x40
+  NETCONN_RAW         = 0x40,
+  NETCONN_RAW_HDRINCL = 0x41
 #if LWIP_IPV6
   /** Raw connection IPv6 (dual-stack by default, unless you call @ref netconn_set_ipv6only) */
-  , NETCONN_RAW_IPV6    = NETCONN_RAW | NETCONN_TYPE_IPV6 /* 0x48 */
+  , NETCONN_RAW_IPV6    = NETCONN_RAW | NETCONN_TYPE_IPV6, /* 0x48 */
+  NETCONN_RAW_IPV6_HDRINCL = NETCONN_RAW_HDRINCL | NETCONN_TYPE_IPV6
 #endif /* LWIP_IPV6 */
 };
 
