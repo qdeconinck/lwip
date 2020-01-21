@@ -765,6 +765,7 @@ netconn_alloc(enum netconn_type t, netconn_callback callback)
   /* initialize socket to -1 since 0 is a valid socket */
   conn->callback_arg.socket = -1;
   conn->callback     = callback;
+  conn->callback_ctx = NULL;
 #if LWIP_TCP
   conn->current_msg  = NULL;
 #endif /* LWIP_TCP */
